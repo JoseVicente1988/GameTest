@@ -1,13 +1,14 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/enemy_data.gd" id="1"]
-[ext_resource type="Resource" path="res://resources/items/rusty_sword.tres" id="2"]
-[ext_resource type="Resource" path="res://resources/items/life_orb.tres" id="3"]
+[ext_resource type="Texture2D" path="res://assets/enemies/stone_boss.svg" id="2"]
+[ext_resource type="Resource" path="res://resources/items/rusty_sword.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/items/life_orb.tres" id="4"]
 
 [resource]
 script = ExtResource("1")
 enemy_name = "Stone Boss"
-scene_color = Color(0.45, 0.45, 0.5, 1)
+enemy_texture = ExtResource("2")
 base_health = 320
 base_damage = 24
 base_armor = 9
@@ -15,4 +16,4 @@ base_xp = 60
 base_gold = 40
 level_power = 1.18
 player_power_weight = 0.42
-drops = Array[Resource]([ExtResource("2"), ExtResource("3")])
+drops = Array[Resource]([ExtResource("3"), ExtResource("4")])
