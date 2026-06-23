@@ -39,47 +39,55 @@ layout_mode = 2
 layout_mode = 2
 text = "Floor: 1"
 horizontal_alignment = 1
+clip_text = true
 
 [node name="PlayerStats" type="Label" parent="MainLayout/TopBar"]
 layout_mode = 2
 text = "Stats"
 horizontal_alignment = 1
-autowrap_mode = 3
+autowrap_mode = 0
+clip_text = true
 
 [node name="BankLabel" type="Label" parent="MainLayout/TopBar"]
 layout_mode = 2
 text = "Bank Gold: 0"
 horizontal_alignment = 1
+clip_text = true
 
 [node name="BaseStatsLabel" type="Label" parent="MainLayout/TopBar"]
 layout_mode = 2
 text = "Base Stats"
 horizontal_alignment = 1
-autowrap_mode = 3
+autowrap_mode = 0
+clip_text = true
 
 [node name="FeedbackLabel" type="Label" parent="MainLayout"]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 text = "Feedback"
 horizontal_alignment = 1
-autowrap_mode = 3
+vertical_alignment = 1
+autowrap_mode = 0
+clip_text = true
 
 [node name="CombatPanel" type="PanelContainer" parent="MainLayout"]
-custom_minimum_size = Vector2(0, 360)
+custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="EnemyView" parent="MainLayout/CombatPanel" instance=ExtResource("3")]
 layout_mode = 2
 
 [node name="AdPanel" type="PanelContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 132)
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="MainLayout/AdPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="MainLayout/AdPanel/MarginContainer"]
 layout_mode = 2
@@ -88,12 +96,14 @@ layout_mode = 2
 layout_mode = 2
 text = "Rewarded Ads"
 horizontal_alignment = 1
+clip_text = true
 
 [node name="AdNoteLabel" type="Label" parent="MainLayout/AdPanel/MarginContainer/VBox"]
 layout_mode = 2
 text = "Rewarded Ads: Gold 0/2 | Training 0/1"
 horizontal_alignment = 1
-autowrap_mode = 3
+autowrap_mode = 0
+clip_text = true
 
 [node name="AdGoldButton" type="Button" parent="MainLayout/AdPanel/MarginContainer/VBox"]
 layout_mode = 2
@@ -104,14 +114,15 @@ layout_mode = 2
 text = "Watch Ad: Permanent Ad Training"
 
 [node name="ShopPanel" type="PanelContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 230)
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="MainLayout/ShopPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="MainLayout/ShopPanel/MarginContainer"]
 layout_mode = 2
@@ -120,6 +131,7 @@ layout_mode = 2
 layout_mode = 2
 text = "Base Upgrades"
 horizontal_alignment = 1
+clip_text = true
 
 [node name="DamageButton" type="Button" parent="MainLayout/ShopPanel/MarginContainer/VBox"]
 layout_mode = 2
@@ -142,15 +154,17 @@ layout_mode = 2
 text = "All Stats"
 
 [node name="LogPanel" type="PanelContainer" parent="MainLayout"]
-custom_minimum_size = Vector2(0, 180)
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
+clip_contents = true
 
 [node name="LogLabel" type="RichTextLabel" parent="MainLayout/LogPanel"]
-custom_minimum_size = Vector2(0, 180)
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_following = true
+scroll_active = true
 
 [node name="UpgradePopup" type="PanelContainer" parent="."]
 visible = false
@@ -179,6 +193,7 @@ layout_mode = 2
 layout_mode = 2
 text = "Level Up - Choose One"
 horizontal_alignment = 1
+clip_text = true
 
 [node name="UpgradeA" type="Button" parent="UpgradePopup/MarginContainer/VBox"]
 custom_minimum_size = Vector2(0, 110)
@@ -217,13 +232,15 @@ layout_mode = 2
 layout_mode = 2
 text = "Run Finished"
 horizontal_alignment = 1
+clip_text = true
 
 [node name="SummaryLabel" type="Label" parent="GameOverPopup/MarginContainer/VBox"]
 custom_minimum_size = Vector2(0, 170)
 layout_mode = 2
 text = "Summary"
 horizontal_alignment = 1
-autowrap_mode = 3
+autowrap_mode = 0
+clip_text = true
 
 [node name="ReviveButton" type="Button" parent="GameOverPopup/MarginContainer/VBox"]
 custom_minimum_size = Vector2(0, 66)
