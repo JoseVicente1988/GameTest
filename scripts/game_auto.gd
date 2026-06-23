@@ -5,6 +5,7 @@ extends Control
 @onready var floor_label: Label = get_node("MainLayout/TopBar/FloorLabel")
 @onready var player_stats: Label = get_node("MainLayout/TopBar/PlayerStats")
 @onready var bank_label: Label = get_node("MainLayout/TopBar/BankLabel")
+@onready var base_stats_label: Label = get_node("MainLayout/TopBar/BaseStatsLabel")
 @onready var feedback_label: Label = get_node("MainLayout/FeedbackLabel")
 @onready var log_label: RichTextLabel = get_node("MainLayout/LogPanel/LogLabel")
 @onready var upgrade_popup: PanelContainer = get_node("UpgradePopup")
@@ -13,12 +14,21 @@ extends Control
 @onready var game_over_popup: PanelContainer = get_node("GameOverPopup")
 @onready var summary_label: Label = get_node("GameOverPopup/MarginContainer/VBox/SummaryLabel")
 @onready var revive_button: Button = get_node("GameOverPopup/MarginContainer/VBox/ReviveButton")
+@onready var double_gold_button: Button = get_node("GameOverPopup/MarginContainer/VBox/DoubleGoldButton")
 @onready var restart_button: Button = get_node("GameOverPopup/MarginContainer/VBox/RestartButton")
 @onready var shop_label: Label = get_node("MainLayout/ShopPanel/MarginContainer/VBox/ShopLabel")
 @onready var damage_button: Button = get_node("MainLayout/ShopPanel/MarginContainer/VBox/DamageButton")
 @onready var armor_button: Button = get_node("MainLayout/ShopPanel/MarginContainer/VBox/ArmorButton")
 @onready var health_button: Button = get_node("MainLayout/ShopPanel/MarginContainer/VBox/HealthButton")
 @onready var gold_button: Button = get_node("MainLayout/ShopPanel/MarginContainer/VBox/GoldButton")
+@onready var all_stats_button: Button = get_node("MainLayout/ShopPanel/MarginContainer/VBox/AllStatsButton")
+@onready var ad_gold_button: Button = get_node("MainLayout/AdPanel/MarginContainer/VBox/AdGoldButton")
+@onready var ad_training_button: Button = get_node("MainLayout/AdPanel/MarginContainer/VBox/AdTrainingButton")
+@onready var ad_note_label: Label = get_node("MainLayout/AdPanel/MarginContainer/VBox/AdNoteLabel")
+
+const AD_GOLD_REWARD: int = 120
+const MAX_AD_GOLD_PER_RUN: int = 2
+const MAX_AD_TRAINING_PER_RUN: int = 1
 
 var normal_enemies: Array[EnemyData] = []
 var boss_enemies: Array[EnemyData] = []
@@ -30,10 +40,13 @@ var enemy_stats: Dictionary = {}
 var attack_timer: float = 0.0
 var combat_running: bool = false
 var revive_used: bool = false
+var double_gold_used: bool = false
 var enemies_defeated: int = 0
 var bosses_defeated: int = 0
 var run_xp_earned: int = 0
 var last_run_gold: int = 0
+var ad_gold_claims_this_run: int = 0
+var ad_training_claims_this_run: int = 0
 
 func _ready() -> void:
     randomize()
@@ -44,11 +57,15 @@ func _ready() -> void:
     upgrade_a.selected.connect(_on_upgrade_selected)
     upgrade_b.selected.connect(_on_upgrade_selected)
     revive_button.pressed.connect(_on_revive_button_pressed)
+    double_gold_button.pressed.connect(_on_double_gold_button_pressed)
     restart_button.pressed.connect(_start_new_run)
     damage_button.pressed.connect(_on_damage_button_pressed)
     armor_button.pressed.connect(_on_armor_button_pressed)
     health_button.pressed.connect(_on_health_button_pressed)
     gold_button.pressed.connect(_on_gold_button_pressed)
+    all_stats_button.pressed.connect(_on_all_stats_button_pressed)
+    ad_gold_button.pressed.connect(_on_ad_gold_button_pressed)
+    ad_training_button.pressed.connect(_on_ad_training_button_pressed)
     upgrade_popup.visible = false
     game_over_popup.visible = false
     _start_new_run()
@@ -83,17 +100,20 @@ func _start_new_run() -> void:
     floor_number = 1
     picked_upgrades.clear()
     revive_used = false
+    double_gold_used = false
     enemies_defeated = 0
     bosses_defeated = 0
     run_xp_earned = 0
     last_run_gold = 0
+    ad_gold_claims_this_run = 0
+    ad_training_claims_this_run = 0
     attack_timer = 0.0
     upgrade_popup.visible = false
     game_over_popup.visible = false
     player.reset_run()
     _spawn_enemy()
     combat_running = true
-    _set_feedback("New run started. Kill enemies, earn gold, upgrade permanently.")
+    _set_feedback("New run started. Kill enemies, earn gold, upgrade base stats, and use rewarded ads for profit.")
     _log("[color=cyan]Run started.[/color]")
     _refresh_shop()
 
@@ -117,11 +137,11 @@ func _combat_tick() -> void:
         _show_game_over()
 
 func _enemy_defeated() -> void:
-    var gold_gain: int = int(enemy_stats["gold"])
+    var base_gold_gain: int = int(enemy_stats["gold"])
     var xp_gain: int = int(enemy_stats["xp"])
     var was_boss: bool = floor_number % 5 == 0
 
-    player.add_gold(gold_gain)
+    var final_gold_gain: int = player.add_gold(base_gold_gain)
     player.add_xp(xp_gain)
     _roll_drops(enemy_stats.get("drops", []))
 
@@ -131,8 +151,8 @@ func _enemy_defeated() -> void:
     if was_boss:
         bosses_defeated += 1
 
-    _set_feedback("+%s gold | +%s XP | Defeated %s" % [gold_gain, xp_gain, enemy_stats["name"]])
-    _log("[color=yellow]+%s gold[/color]  [color=lime]+%s XP[/color]  %s defeated." % [gold_gain, xp_gain, enemy_stats["name"]])
+    _set_feedback("+%s gold | +%s XP | Defeated %s" % [final_gold_gain, xp_gain, enemy_stats["name"]])
+    _log("[color=yellow]+%s gold[/color]  [color=lime]+%s XP[/color]  %s defeated." % [final_gold_gain, xp_gain, enemy_stats["name"]])
 
     floor_number += 1
     _spawn_enemy()
@@ -182,6 +202,7 @@ func _show_game_over() -> void:
     combat_running = false
     game_over_popup.visible = true
     revive_button.visible = not revive_used
+    double_gold_button.visible = not double_gold_used and player.run_gold > 0
     summary_label.text = "Run finished\nFloor: %s\nEnemies defeated: %s\nBosses defeated: %s\nRun gold: %s\nXP earned: %s\nBank gold: %s" % [
         floor_number,
         enemies_defeated,
@@ -190,7 +211,7 @@ func _show_game_over() -> void:
         run_xp_earned,
         player.persistent_gold
     ]
-    _set_feedback("You died. Revive once with rewarded ad or spend gold in base upgrades.")
+    _set_feedback("You died. Use rewarded ad to revive, double run gold, or spend bank gold in base upgrades.")
     _log("[color=red]Game Over.[/color] Floor reached: %s. Run gold: %s." % [floor_number, player.run_gold])
 
 func _on_revive_button_pressed() -> void:
@@ -204,6 +225,49 @@ func _on_revive_button_pressed() -> void:
     _set_feedback("Rewarded ad completed. Revived with 50% HP.")
     _log("[color=lime]Rewarded revive used.[/color]")
 
+func _on_double_gold_button_pressed() -> void:
+    if double_gold_used:
+        return
+
+    double_gold_used = true
+    var bonus: int = player.double_current_run_gold_from_ad()
+    double_gold_button.visible = false
+    _refresh_game_over_summary()
+    _set_feedback("Rewarded ad completed. Doubled run gold: +%s bank gold." % bonus)
+    _log("[color=yellow]Rewarded ad doubled run gold:[/color] +%s" % bonus)
+
+func _refresh_game_over_summary() -> void:
+    summary_label.text = "Run finished\nFloor: %s\nEnemies defeated: %s\nBosses defeated: %s\nRun gold: %s\nXP earned: %s\nBank gold: %s" % [
+        floor_number,
+        enemies_defeated,
+        bosses_defeated,
+        player.run_gold,
+        run_xp_earned,
+        player.persistent_gold
+    ]
+
+func _on_ad_gold_button_pressed() -> void:
+    if ad_gold_claims_this_run >= MAX_AD_GOLD_PER_RUN:
+        _set_feedback("Sponsored gold limit reached for this run.")
+        return
+
+    ad_gold_claims_this_run += 1
+    var rewarded_gold: int = player.add_ad_gold(AD_GOLD_REWARD)
+    _set_feedback("Rewarded ad completed. +%s sponsored gold." % rewarded_gold)
+    _log("[color=yellow]Sponsored gold reward:[/color] +%s" % rewarded_gold)
+    _refresh_shop()
+
+func _on_ad_training_button_pressed() -> void:
+    if ad_training_claims_this_run >= MAX_AD_TRAINING_PER_RUN:
+        _set_feedback("Sponsored training limit reached for this run.")
+        return
+
+    ad_training_claims_this_run += 1
+    player.add_ad_training_level()
+    _set_feedback("Rewarded ad completed. Permanent Ad Training increased.")
+    _log("[color=cyan]Sponsored base training upgraded.[/color]")
+    _start_new_run()
+
 func _on_damage_button_pressed() -> void:
     _buy_upgrade("damage")
 
@@ -215,6 +279,9 @@ func _on_health_button_pressed() -> void:
 
 func _on_gold_button_pressed() -> void:
     _buy_upgrade("gold")
+
+func _on_all_stats_button_pressed() -> void:
+    _buy_upgrade("all_stats")
 
 func _buy_upgrade(upgrade_id: String) -> void:
     var bought: bool = player.buy_permanent_upgrade(upgrade_id)
@@ -238,6 +305,7 @@ func _refresh_ui() -> void:
         player.run_gold
     ]
     bank_label.text = "Bank Gold: %s" % player.persistent_gold
+    base_stats_label.text = player.get_base_stats_text()
 
 func _refresh_shop() -> void:
     shop_label.text = "Base Upgrades | Bank Gold: %s" % player.persistent_gold
@@ -245,6 +313,13 @@ func _refresh_shop() -> void:
     armor_button.text = "Armor Lv.%s (+2) - Cost %s" % [player.permanent_armor_level, player.get_upgrade_cost("armor")]
     health_button.text = "Health Lv.%s (+25) - Cost %s" % [player.permanent_health_level, player.get_upgrade_cost("health")]
     gold_button.text = "Gold Lv.%s (+8%%) - Cost %s" % [player.permanent_gold_level, player.get_upgrade_cost("gold")]
+    all_stats_button.text = "All Stats Lv.%s (+DMG/ARM/HP) - Cost %s" % [player.permanent_all_stats_level, player.get_upgrade_cost("all_stats")]
+    ad_note_label.text = "Rewarded Ads: Gold %s/%s | Training %s/%s" % [
+        ad_gold_claims_this_run,
+        MAX_AD_GOLD_PER_RUN,
+        ad_training_claims_this_run,
+        MAX_AD_TRAINING_PER_RUN
+    ]
     _refresh_ui()
 
 func _set_feedback(message: String) -> void:
