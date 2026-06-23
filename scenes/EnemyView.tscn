@@ -30,10 +30,11 @@ max_value = 100.0
 value = 100.0
 show_percentage = false
 
-[node name="EnemySprite" type="ColorRect" parent="Panel/VBox"]
-custom_minimum_size = Vector2(240, 180)
+[node name="EnemyTexture" type="TextureRect" parent="Panel/VBox"]
+custom_minimum_size = Vector2(260, 220)
 layout_mode = 2
-color = Color(1, 0, 0, 1)
+stretch_mode = 5
+expand_mode = 1
 
 [node name="StatsLabel" type="Label" parent="Panel/VBox"]
 layout_mode = 2
