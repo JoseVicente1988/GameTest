@@ -3,11 +3,21 @@ class_name PlayerModel
 
 signal stats_changed
 signal leveled_up
+signal meta_changed
+
+const SAVE_PATH: String = "user://pocket_dungeon_save.cfg"
 
 var level: int = 1
 var xp: int = 0
 var xp_to_next: int = 25
-var gold: int = 0
+
+var run_gold: int = 0
+var persistent_gold: int = 0
+
+var permanent_damage_level: int = 0
+var permanent_armor_level: int = 0
+var permanent_health_level: int = 0
+var permanent_gold_level: int = 0
 
 var max_health: int = 180
 var health: int = 180
@@ -18,6 +28,9 @@ var regen: int = 0
 var enemy_damage_reduction: int = 0
 var enemy_armor_reduction: int = 0
 
+func _ready() -> void:
+    load_progress()
+
 func get_power() -> float:
     return float(max_health * 0.25 + damage * 2.5 + armor * 3.0 + regen * 4.0)
 
@@ -25,14 +38,16 @@ func reset_run() -> void:
     level = 1
     xp = 0
     xp_to_next = 25
-    max_health = 180
+    run_gold = 0
+    max_health = 180 + permanent_health_level * 25
     health = max_health
-    damage = 18
-    armor = 5
+    damage = 18 + permanent_damage_level * 4
+    armor = 5 + permanent_armor_level * 2
     regen = 0
     enemy_damage_reduction = 0
     enemy_armor_reduction = 0
     stats_changed.emit()
+    meta_changed.emit()
 
 func take_damage(amount: int) -> void:
     var final_damage: int = max(1, amount - armor)
@@ -41,6 +56,10 @@ func take_damage(amount: int) -> void:
 
 func heal(amount: int) -> void:
     health = min(max_health, health + amount)
+    stats_changed.emit()
+
+func revive_from_ad() -> void:
+    health = max(1, int(float(max_health) * 0.5))
     stats_changed.emit()
 
 func add_xp(amount: int) -> void:
@@ -53,15 +72,23 @@ func add_xp(amount: int) -> void:
     stats_changed.emit()
 
 func add_gold(amount: int) -> void:
-    gold += amount
+    var final_amount: int = int(float(amount) * get_gold_multiplier())
+    final_amount = max(1, final_amount)
+    run_gold += final_amount
+    persistent_gold += final_amount
+    save_progress()
     stats_changed.emit()
+    meta_changed.emit()
+
+func get_gold_multiplier() -> float:
+    return 1.0 + float(permanent_gold_level) * 0.08
 
 func apply_item(item: ItemData) -> void:
     damage += item.damage_bonus
     armor += item.armor_bonus
     max_health += item.max_health_bonus
     health += item.max_health_bonus
-    gold += item.gold_bonus
+    add_gold(item.gold_bonus)
     stats_changed.emit()
 
 func apply_upgrade(upgrade: UpgradeData, times_picked: int) -> void:
@@ -80,3 +107,69 @@ func apply_upgrade(upgrade: UpgradeData, times_picked: int) -> void:
     elif upgrade.type == UpgradeData.UpgradeType.ENEMY_ARMOR_REDUCTION:
         enemy_armor_reduction += value
     stats_changed.emit()
+
+func get_upgrade_cost(upgrade_id: String) -> int:
+    if upgrade_id == "damage":
+        return 60 + permanent_damage_level * 45
+    elif upgrade_id == "armor":
+        return 55 + permanent_armor_level * 40
+    elif upgrade_id == "health":
+        return 70 + permanent_health_level * 50
+    elif upgrade_id == "gold":
+        return 90 + permanent_gold_level * 70
+    return 999999
+
+func buy_permanent_upgrade(upgrade_id: String) -> bool:
+    var cost: int = get_upgrade_cost(upgrade_id)
+    if persistent_gold < cost:
+        return false
+
+    persistent_gold -= cost
+
+    if upgrade_id == "damage":
+        permanent_damage_level += 1
+    elif upgrade_id == "armor":
+        permanent_armor_level += 1
+    elif upgrade_id == "health":
+        permanent_health_level += 1
+    elif upgrade_id == "gold":
+        permanent_gold_level += 1
+    else:
+        persistent_gold += cost
+        return false
+
+    save_progress()
+    reset_run()
+    meta_changed.emit()
+    return true
+
+func save_progress() -> void:
+    var config: ConfigFile = ConfigFile.new()
+    config.set_value("currency", "persistent_gold", persistent_gold)
+    config.set_value("upgrades", "damage", permanent_damage_level)
+    config.set_value("upgrades", "armor", permanent_armor_level)
+    config.set_value("upgrades", "health", permanent_health_level)
+    config.set_value("upgrades", "gold", permanent_gold_level)
+    config.save(SAVE_PATH)
+
+func load_progress() -> void:
+    var config: ConfigFile = ConfigFile.new()
+    var error: Error = config.load(SAVE_PATH)
+    if error != OK:
+        return
+
+    persistent_gold = int(config.get_value("currency", "persistent_gold", 0))
+    permanent_damage_level = int(config.get_value("upgrades", "damage", 0))
+    permanent_armor_level = int(config.get_value("upgrades", "armor", 0))
+    permanent_health_level = int(config.get_value("upgrades", "health", 0))
+    permanent_gold_level = int(config.get_value("upgrades", "gold", 0))
+    meta_changed.emit()
+
+func reset_save() -> void:
+    persistent_gold = 0
+    permanent_damage_level = 0
+    permanent_armor_level = 0
+    permanent_health_level = 0
+    permanent_gold_level = 0
+    save_progress()
+    reset_run()
