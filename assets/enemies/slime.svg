@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="body" cx="38%" cy="26%" r="74%">
+      <stop offset="0" stop-color="#d9ff4f"/>
+      <stop offset="0.48" stop-color="#70d92e"/>
+      <stop offset="1" stop-color="#15732c"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#03180a" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <ellipse cx="256" cy="424" rx="170" ry="34" fill="#06230f" opacity="0.35"/>
+  <path d="M74 360 C82 245 139 133 249 120 C354 108 419 209 433 342 C481 364 464 420 399 412 C351 443 167 444 112 410 C54 421 29 378 74 360 Z" fill="url(#body)" stroke="#155f1e" stroke-width="14" filter="url(#shadow)"/>
+  <path d="M108 344 C128 230 178 166 265 153 C189 152 110 240 93 348 Z" fill="#e9ff81" opacity="0.28"/>
+  <ellipse cx="171" cy="176" rx="42" ry="25" transform="rotate(-35 171 176)" fill="#ffffff" opacity="0.78"/>
+  <circle cx="214" cy="152" r="11" fill="#ffffff" opacity="0.9"/>
+  <circle cx="357" cy="186" r="23" fill="#d8ff45" opacity="0.55" stroke="#3b941d" stroke-width="6"/>
+  <circle cx="382" cy="232" r="16" fill="#eaff72" opacity="0.58" stroke="#3b941d" stroke-width="5"/>
+  <path d="M141 279 C169 252 216 252 239 286 C202 284 174 292 151 319 Z" fill="#04170b"/>
+  <path d="M369 279 C341 252 294 252 271 286 C308 284 336 292 359 319 Z" fill="#04170b"/>
+  <circle cx="192" cy="291" r="15" fill="#dfff57"/>
+  <circle cx="319" cy="291" r="15" fill="#dfff57"/>
+  <circle cx="197" cy="285" r="6" fill="#ffffff"/>
+  <circle cx="324" cy="285" r="6" fill="#ffffff"/>
+  <path d="M218 348 C235 366 276 366 294 348" fill="none" stroke="#07240e" stroke-width="12" stroke-linecap="round"/>
+  <path d="M223 348 C235 359 244 359 256 348 C269 359 280 359 291 348" fill="none" stroke="#d2ff48" stroke-width="4" stroke-linecap="round" opacity="0.65"/>
+</svg>
