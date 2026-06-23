@@ -29,11 +29,13 @@ extends Control
 const AD_GOLD_REWARD: int = 120
 const MAX_AD_GOLD_PER_RUN: int = 2
 const MAX_AD_TRAINING_PER_RUN: int = 1
+const MAX_LOG_LINES: int = 24
 
 var normal_enemies: Array[EnemyData] = []
 var boss_enemies: Array[EnemyData] = []
 var upgrades: Array[UpgradeData] = []
 var picked_upgrades: Dictionary = {}
+var log_history: Array[String] = []
 
 var floor_number: int = 1
 var enemy_stats: Dictionary = {}
@@ -99,6 +101,8 @@ func _process(delta: float) -> void:
 func _start_new_run() -> void:
     floor_number = 1
     picked_upgrades.clear()
+    log_history.clear()
+    log_label.clear()
     revive_used = false
     double_gold_used = false
     enemies_defeated = 0
@@ -326,5 +330,12 @@ func _set_feedback(message: String) -> void:
     feedback_label.text = message
 
 func _log(message: String) -> void:
-    log_label.append_text(message + "\n")
+    log_history.append(message)
+    while log_history.size() > MAX_LOG_LINES:
+        log_history.pop_front()
+
+    log_label.clear()
+    for line in log_history:
+        log_label.append_text(line + "\n")
+
     log_label.scroll_to_line(log_label.get_line_count())
